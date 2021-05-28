@@ -1,0 +1,112 @@
+4.1 База данных содержит список аэропортов практически всех крупных городов России. В большинстве городов есть только один аэропорт. Исключение составляет:
+  SELECT a.city
+    FROM dst_project.airports a
+GROUP BY 1
+  HAVING COUNT(a.airport_name) > 1
+
+______________________________________________________
+4.2.1 Таблица рейсов содержит всю информацию о прошлых, текущих и запланированных рейсах. Сколько всего статусов для рейсов определено в таблице?
+SELECT COUNT(DISTINCT f.status)
+  FROM dst_project.flights f
+
+______________________________________________________
+4.2.2 Какое количество самолетов находятся в воздухе на момент среза в базе (статус рейса «самолёт уже вылетел и находится в воздухе»).
+SELECT COUNT(f.flight_id)
+  FROM dst_project.flights f
+ WHERE f.status = 'Departed'
+
+______________________________________________________
+4.2.3 Места определяют схему салона каждой модели. Сколько мест имеет самолет модели 773 (Boeing 777-300)?
+SELECT COUNT(s.seat_no)
+  FROM dst_project.aircrafts a
+  JOIN dst_project.seats s ON a.aircraft_code = s.aircraft_code
+ WHERE a.model = 'Boeing 777-300'
+
+______________________________________________________
+4.2.4 Сколько состоявшихся (фактических) рейсов было совершено между 1 апреля 2017 года и 1 сентября 2017 года?
+SELECT COUNT(f.flight_id)
+  FROM dst_project.flights f
+ WHERE f.status = 'Arrived'
+       AND f.actual_arrival BETWEEN '2017-04-01' AND '2017-09-01'
+
+______________________________________________________
+4.3.1 Сколько всего рейсов было отменено по данным базы?
+SELECT COUNT(f.flight_id)
+  FROM dst_project.flights f
+ WHERE f.status = 'Cancelled'
+
+______________________________________________________
+4.3.2 Сколько самолетов моделей типа Boeing, Sukhoi Superjet, Airbus находится в базе авиаперевозок?
+   SELECT 'Boeing' manufacturer,
+          COUNT(a.aircraft_code)
+     FROM dst_project.aircrafts a
+    WHERE a.model LIKE 'Boeing%'
+UNION ALL
+   SELECT 'Sukhoi Superjet',
+          COUNT(a.aircraft_code)
+     FROM dst_project.aircrafts a
+    WHERE a.model LIKE 'Sukhoi Superjet%'
+UNION ALL
+   SELECT 'Airbus',
+          COUNT(a.aircraft_code)
+     FROM dst_project.aircrafts a
+    WHERE a.model LIKE 'Airbus%'
+
+______________________________________________________
+4.3.3 В какой части (частях) света находится больше аэропортов?
+SELECT split_part(a.timezone, '/', 1) world_part,
+       count(split_part(a.timezone, '/', 1))
+  FROM dst_project.airports a
+GROUP BY split_part(a.timezone, '/', 1)
+ORDER BY 2 DESC
+
+______________________________________________________
+4.3.4 У какого рейса была самая большая задержка прибытия за все время сбора данных? Введите id рейса (flight_id).
+SELECT f.flight_id
+  FROM dst_project.flights f
+ WHERE f.actual_arrival IS NOT NULL
+ORDER BY (f.actual_arrival - f.scheduled_arrival) DESC
+ LIMIT 1
+
+______________________________________________________
+4.4.1 Когда был запланирован самый первый вылет, сохраненный в базе данных?
+SELECT MIN(f.scheduled_departure)
+  FROM dst_project.flights f
+
+______________________________________________________
+4.4.2 Сколько минут составляет запланированное время полета в самом длительном рейсе?
+SELECT MAX(EXTRACT(epoch FROM (f.scheduled_arrival - f.scheduled_departure)) / 60)
+  FROM dst_project.flights f
+
+______________________________________________________
+4.4.3 Между какими аэропортами пролегает самый длительный по времени запланированный рейс?
+SELECT f.departure_airport, f.arrival_airport
+  FROM dst_project.flights f
+ORDER BY (f.scheduled_arrival - f.scheduled_departure) DESC
+ LIMIT 1
+
+______________________________________________________
+4.4.4 Сколько составляет средняя дальность полета среди всех самолетов в минутах? Секунды округляются в меньшую сторону (отбрасываются до минут).
+SELECT AVG(EXTRACT(epoch FROM (f.scheduled_arrival - f.scheduled_departure)) / 60)
+  FROM dst_project.flights f
+
+______________________________________________________
+4.5.1 Мест какого класса у SU9 больше всего?
+SELECT s.fare_conditions
+  FROM dst_project.seats s
+ WHERE s.aircraft_code = 'SU9'
+GROUP BY 1
+ORDER BY COUNT(s.seat_no) DESC
+ LIMIT 1
+
+______________________________________________________
+4.5.2 Какую самую минимальную стоимость составило бронирование за всю историю?
+SELECT MIN(b.total_amount)
+  FROM dst_project.bookings b
+
+______________________________________________________
+4.5.3 Какой номер места был у пассажира с id = 4313 788533 ?
+SELECT b.seat_no
+  FROM dst_project.tickets t
+  JOIN dst_project.boarding_passes b ON t.ticket_no = b.ticket_no
+ WHERE t.passenger_id = '4313 788533'
