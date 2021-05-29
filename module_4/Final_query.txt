@@ -1,0 +1,106 @@
+WITH tickets_sum AS
+          (
+             SELECT t.flight_id,
+                    COALESCE(t_b.business_seats_occupied, 0) business_seats_occupied,
+                    COALESCE(t_b.business_paid, 0) business_paid,
+                    COALESCE(t_c.comfort_seats_occupied, 0) comfort_seats_occupied,
+                    COALESCE(t_c.comfort_paid, 0) comfort_paid,
+                    COALESCE(t_e.economy_seats_occupied, 0) economy_seats_occupied,
+                    COALESCE(t_e.economy_paid, 0) economy_paid,
+                    (COALESCE(t_b.business_paid, 0) + COALESCE(t_c.comfort_paid, 0) + COALESCE(t_e.economy_paid, 0)) total_paid
+               FROM dst_project.ticket_flights t
+          LEFT JOIN (  SELECT t_b.flight_id,
+                              t_b.fare_conditions,
+                              COUNT(t_b.fare_conditions) business_seats_occupied,
+                              SUM(t_b.amount) business_paid
+                         FROM dst_project.ticket_flights t_b
+                        WHERE t_b.fare_conditions = 'Business'
+                     GROUP BY 1, 2
+                    )  t_b
+                 ON t_b.flight_id = t.flight_id
+          LEFT JOIN (  SELECT t_c.flight_id,
+                              t_c.fare_conditions,
+                              COUNT(t_c.fare_conditions) comfort_seats_occupied,
+                              SUM(t_c.amount) comfort_paid
+                         FROM dst_project.ticket_flights t_c
+                        WHERE t_c.fare_conditions = 'Comfort'
+                     GROUP BY 1, 2
+                    ) t_c
+                 ON t_c.flight_id = t.flight_id
+          LEFT JOIN (  SELECT t_e.flight_id,
+                              t_e.fare_conditions,
+                              COUNT(t_e.fare_conditions) economy_seats_occupied,
+                              SUM(t_e.amount) economy_paid
+                         FROM dst_project.ticket_flights t_e
+                        WHERE t_e.fare_conditions = 'Economy'
+                     GROUP BY 1, 2
+                    ) t_e
+                 ON t_e.flight_id = t.flight_id
+           GROUP BY 1, 2, 3, 4, 5, 6, 7
+          ),
+
+          aircrafts_sum AS
+          (
+             SELECT a.*,
+                    COALESCE(s_b.business_seats_total, 0) business_seats_total,
+                    COALESCE(s_c.comfort_seats_total, 0) comfort_seats_total,
+                    COALESCE(s_e.economy_seats_total, 0) economy_seats_total
+               FROM dst_project.aircrafts a
+          LEFT JOIN (  SELECT s_b.aircraft_code,
+                              COUNT(s_b.fare_conditions) business_seats_total
+                         FROM dst_project.seats s_b
+                        WHERE s_b.fare_conditions = 'Business'
+                     GROUP BY 1
+                    ) s_b
+                 ON s_b.aircraft_code = a.aircraft_code
+          LEFT JOIN (  SELECT s_c.aircraft_code,
+                              COUNT(s_c.fare_conditions) comfort_seats_total
+                         FROM dst_project.seats s_c
+                        WHERE s_c.fare_conditions = 'Comfort'
+                     GROUP BY s_c.aircraft_code
+                    ) s_c
+                 ON s_c.aircraft_code = a.aircraft_code
+          LEFT JOIN (  SELECT s_e.aircraft_code,
+                              COUNT(s_e.fare_conditions) economy_seats_total
+                         FROM dst_project.seats s_e
+                        WHERE s_e.fare_conditions = 'Economy'
+                     GROUP BY s_e.aircraft_code
+                    ) s_e
+                 ON s_e.aircraft_code = a.aircraft_code
+           GROUP BY 1,4,5,6
+          )
+
+   SELECT f.flight_id,                                               -- id рейса
+          f.flight_no,                                               -- номер рейса
+          'Anapa' dep_city,                                          -- город вылета (Анапа, необходимо по условию задачи)
+          a.city arr_city,                                           -- город прилета
+          a.airport_code arr_airport_code,                           -- код аэропорта прилета
+          a.airport_name arr_airport_name,                           -- название аэропорта прилета
+          ai.model aircraft_model,                                   -- модель самолета
+          ai.business_seats_total,                                   -- суммарное кол-во мест бизнес класса в самолете
+          ti.business_seats_occupied,                                -- кол-во занятых мест бизнес класса на рейсе
+          ai.comfort_seats_total,                                    -- суммарное кол-во мест комфорт класса в самолете
+          ti.comfort_seats_occupied,                                 -- кол-во занятых мест комфорт класса на рейсе
+          ai.economy_seats_total,                                    -- суммарное кол-во мест эконом класса в самолете
+          ti.economy_seats_occupied,                                 -- кол-во занятых мест эконом класса на рейсе
+          (((ti.business_seats_occupied + ti.comfort_seats_occupied + ti.economy_seats_occupied) * 100) /
+              (ai.business_seats_total + ai.comfort_seats_total + ai.economy_seats_total)) fullness_percents,  -- заполненность салона (в %)
+          ti.business_paid,                                          -- сумма с продажи билетов бизнес класса
+          ti.comfort_paid,                                           -- сумма с продажи билетов комофрт класса
+          ti.economy_paid,                                           -- сумма с продажи билетов эконом класса
+          ti.total_paid,                                             -- общая стоимость проданных билетов
+          f.actual_departure,                                        -- фактическое время вылета
+          f.actual_arrival,                                          -- фактическое время прилета
+          (EXTRACT(EPOCH FROM (f.actual_arrival - f.actual_departure)) / 60) flight_time_min           -- фактическое время полета (в минутах)
+
+     FROM dst_project.flights f
+LEFT JOIN dst_project.airports a
+       ON a.airport_code = f.arrival_airport
+LEFT JOIN aircrafts_sum ai
+       ON ai.aircraft_code = f.aircraft_code
+LEFT JOIN tickets_sum ti
+       ON ti.flight_id = f.flight_id
+
+    WHERE f.departure_airport = 'AAQ'
+      AND f.status != 'Cancelled'
+      AND date_trunc('month', f.scheduled_departure) in ('2017-01-01','2017-02-01','2017-12-01')
