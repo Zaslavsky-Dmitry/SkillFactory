@@ -1,13 +1,12 @@
-WITH tickets_sum AS
+     WITH tickets_sum AS
           (
              SELECT t.flight_id,
-                    COALESCE(t_b.business_seats_occupied, 0) business_seats_occupied,
-                    COALESCE(t_b.business_paid, 0) business_paid,
-                    COALESCE(t_c.comfort_seats_occupied, 0) comfort_seats_occupied,
-                    COALESCE(t_c.comfort_paid, 0) comfort_paid,
-                    COALESCE(t_e.economy_seats_occupied, 0) economy_seats_occupied,
-                    COALESCE(t_e.economy_paid, 0) economy_paid,
-                    (COALESCE(t_b.business_paid, 0) + COALESCE(t_c.comfort_paid, 0) + COALESCE(t_e.economy_paid, 0)) total_paid
+                    t_b.business_seats_occupied,
+                    t_b.business_paid,
+                    t_c.comfort_seats_occupied,
+                    t_c.comfort_paid,
+                    t_e.economy_seats_occupied,
+                    t_e.economy_paid
                FROM dst_project.ticket_flights t
           LEFT JOIN (  SELECT t_b.flight_id,
                               t_b.fare_conditions,
@@ -42,9 +41,9 @@ WITH tickets_sum AS
           aircrafts_sum AS
           (
              SELECT a.*,
-                    COALESCE(s_b.business_seats_total, 0) business_seats_total,
-                    COALESCE(s_c.comfort_seats_total, 0) comfort_seats_total,
-                    COALESCE(s_e.economy_seats_total, 0) economy_seats_total
+                    s_b.business_seats_total,
+                    s_c.comfort_seats_total,
+                    s_e.economy_seats_total
                FROM dst_project.aircrafts a
           LEFT JOIN (  SELECT s_b.aircraft_code,
                               COUNT(s_b.fare_conditions) business_seats_total
@@ -70,37 +69,57 @@ WITH tickets_sum AS
            GROUP BY 1,4,5,6
           )
 
-   SELECT f.flight_id,                                               -- id рейса
-          f.flight_no,                                               -- номер рейса
-          'Anapa' dep_city,                                          -- город вылета (Анапа, необходимо по условию задачи)
-          a.city arr_city,                                           -- город прилета
-          a.airport_code arr_airport_code,                           -- код аэропорта прилета
-          a.airport_name arr_airport_name,                           -- название аэропорта прилета
-          ai.model aircraft_model,                                   -- модель самолета
-          ai.business_seats_total,                                   -- суммарное кол-во мест бизнес класса в самолете
-          ti.business_seats_occupied,                                -- кол-во занятых мест бизнес класса на рейсе
-          ai.comfort_seats_total,                                    -- суммарное кол-во мест комфорт класса в самолете
-          ti.comfort_seats_occupied,                                 -- кол-во занятых мест комфорт класса на рейсе
-          ai.economy_seats_total,                                    -- суммарное кол-во мест эконом класса в самолете
-          ti.economy_seats_occupied,                                 -- кол-во занятых мест эконом класса на рейсе
-          (((ti.business_seats_occupied + ti.comfort_seats_occupied + ti.economy_seats_occupied) * 100) /
-              (ai.business_seats_total + ai.comfort_seats_total + ai.economy_seats_total)) fullness_percents,  -- заполненность салона (в %)
-          ti.business_paid,                                          -- сумма с продажи билетов бизнес класса
-          ti.comfort_paid,                                           -- сумма с продажи билетов комофрт класса
-          ti.economy_paid,                                           -- сумма с продажи билетов эконом класса
-          ti.total_paid,                                             -- общая стоимость проданных билетов
-          f.actual_departure,                                        -- фактическое время вылета
-          f.actual_arrival,                                          -- фактическое время прилета
-          (EXTRACT(EPOCH FROM (f.actual_arrival - f.actual_departure)) / 60) flight_time_min           -- фактическое время полета (в минутах)
+   SELECT f.flight_id,                                                                         -- id рейса
+          f.flight_no,                                                                         -- номер рейса
+          d.city dep_city,                                                                     -- город вылета
+          a.city arr_city,                                                                     -- город прилета
+          a.airport_code arr_airport_code,                                                     -- код аэропорта прилета
+          a.airport_name arr_airport_name,                                                     -- название аэропорта прилета
+          ai.model aircraft_model,                                                             -- модель самолета
+          COALESCE(ai.business_seats_total, 0) business_seats_total,                           -- суммарное кол-во мест бизнес класса в самолете
+          COALESCE(ti.business_seats_occupied, 0) business_seats_occupied,                     -- кол-во занятых мест бизнес класса на рейсе
+          COALESCE(ai.comfort_seats_total, 0) comfort_seats_total,                             -- суммарное кол-во мест комфорт класса в самолете
+          COALESCE(ti.comfort_seats_occupied, 0) comfort_seats_occupied,                       -- кол-во занятых мест комфорт класса на рейсе
+          COALESCE(ai.economy_seats_total, 0) economy_seats_total,                             -- суммарное кол-во мест эконом класса в самолете
+          COALESCE(ti.economy_seats_occupied, 0) economy_seats_occupied,                       -- кол-во занятых мест эконом класса на рейсе
+          (COALESCE(ai.business_seats_total, 0) +
+           COALESCE(ai.comfort_seats_total, 0) +
+           COALESCE(ai.economy_seats_total, 0)) total_seats,                                   -- суммарное кол-во мест в самолете
+          ROUND((COALESCE(ti.business_seats_occupied, 0) * 100) /
+                (0.001 + COALESCE(ai.business_seats_total, 1))) b_fullness_percents,           -- заполненность бизнес-класса в(%)
+          ROUND((COALESCE(ti.comfort_seats_occupied, 0) * 100) /
+                (0.001 + COALESCE(ai.comfort_seats_total, 1))) c_fullness_percents,            -- заполненность комфорт-класса в(%)
+          ROUND((COALESCE(ti.economy_seats_occupied, 0) * 100) /
+                (0.001 + COALESCE(ai.economy_seats_total, 1))) e_fullness_percents,            -- заполненность эконом-класса в(%)
+          ROUND(((COALESCE(ti.business_seats_occupied, 0) +
+                  COALESCE(ti.comfort_seats_occupied, 0) +
+                  COALESCE(ti.economy_seats_occupied, 0)) * 100) /
+                 (COALESCE(ai.business_seats_total, 0) +
+                  COALESCE(ai.comfort_seats_total, 0) +
+                  COALESCE(ai.economy_seats_total, 0))
+               ) fullness_percents,                                                             -- заполненность салона (в %)
+          COALESCE(ti.business_paid, 0) business_paid,                                          -- сумма с продажи билетов бизнес класса
+          COALESCE(ti.comfort_paid, 0) comfort_paid,                                            -- сумма с продажи билетов комофрт класса
+          COALESCE(ti.economy_paid, 0) economy_paid,                                            -- сумма с продажи билетов эконом класса
+          (COALESCE(ti.business_paid, 0) +
+           COALESCE(ti.comfort_paid, 0) +
+           COALESCE(ti.economy_paid, 0)
+          ) total_paid,                                                                          -- общая стоимость проданных билетов
+          f.actual_departure,                                                                    -- фактическое время вылета
+          f.actual_arrival,                                                                      -- фактическое время прилета
+          (EXTRACT(EPOCH FROM (f.actual_arrival - f.actual_departure)) / 60) flight_time_min     -- фактическое время полета (в минутах)
 
      FROM dst_project.flights f
 LEFT JOIN dst_project.airports a
        ON a.airport_code = f.arrival_airport
+LEFT JOIN dst_project.airports d
+       ON d.airport_code = f.departure_airport
 LEFT JOIN aircrafts_sum ai
        ON ai.aircraft_code = f.aircraft_code
 LEFT JOIN tickets_sum ti
        ON ti.flight_id = f.flight_id
 
-    WHERE f.departure_airport = 'AAQ'
+    WHERE d.city = 'Anapa'
       AND f.status != 'Cancelled'
-      AND date_trunc('month', f.scheduled_departure) in ('2017-01-01','2017-02-01','2017-12-01')
+      AND (DATE_PART('year', f.scheduled_departure) = 2017)
+      AND (DATE_PART('month', f.scheduled_departure) in (1, 2, 12))

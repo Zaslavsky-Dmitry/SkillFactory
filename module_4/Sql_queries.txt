@@ -57,7 +57,7 @@ ______________________________________________________
   SELECT SPLIT_PART(a.timezone, '/', 1) world_part,
          COUNT(SPLIT_PART(a.timezone, '/', 1))
     FROM dst_project.airports a
-GROUP BY SPLIT_PART(a.timezone, '/', 1)
+GROUP BY 1
 ORDER BY 2 DESC
 
 ______________________________________________________
@@ -87,7 +87,7 @@ ORDER BY (f.scheduled_arrival - f.scheduled_departure) DESC
 
 ______________________________________________________
 4.4.4 Сколько составляет средняя дальность полета среди всех самолетов в минутах? Секунды округляются в меньшую сторону (отбрасываются до минут).
-SELECT AVG(EXTRACT(epoch FROM (f.scheduled_arrival - f.scheduled_departure)) / 60)
+SELECT ROUND(AVG(EXTRACT(epoch FROM (f.scheduled_arrival - f.scheduled_departure)) / 60))
   FROM dst_project.flights f
 
 ______________________________________________________
@@ -149,7 +149,7 @@ SELECT COUNT(f.flight_id)
 
 ______________________________________________________
 5.5 Какая модель самолета летящего на рейсах из Анапы имеет больше всего мест?
-   SELECT ac.model  --COUNT(f.flight_id)
+   SELECT ac.model
      FROM dst_project.flights f
      JOIN dst_project.airports a ON f.departure_airport = a.airport_code
      JOIN dst_project.aircrafts ac ON f.aircraft_code = ac.aircraft_code
