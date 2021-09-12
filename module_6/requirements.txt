@@ -29,6 +29,7 @@ boto==2.49.0
 Bottleneck==1.3.2
 brotlipy==0.7.0
 capture==0.1
+catboost==0.26.1
 certifi==2020.6.20
 cffi @ file:///opt/concourse/worker/volumes/live/b9607b09-b777-4ff7-53dc-287727eb8574/volume/cffi_1600699191154/work
 chardet==3.0.4
@@ -71,6 +72,7 @@ gensim==4.1.0
 gevent @ file:///opt/concourse/worker/volumes/live/e6b243ce-c4b8-40bb-4934-ef3bf1c512f2/volume/gevent_1601397552921/work
 glob2==0.7
 gmpy2==2.0.8
+graphviz==0.17
 greenlet @ file:///opt/concourse/worker/volumes/live/02d5d57d-1f11-4cf9-580a-19e679c78dc9/volume/greenlet_1600874049903/work
 h5py==2.10.0
 HeapDict==1.0.1
