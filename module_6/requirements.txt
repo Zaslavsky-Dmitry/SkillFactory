@@ -95,7 +95,7 @@ itsdangerous==1.1.0
 jdcal==1.4.1
 jedi @ file:///opt/concourse/worker/volumes/live/1c5c293b-9147-4b4b-5a7f-d3f5eddb8470/volume/jedi_1592841952519/work
 Jinja2==2.11.2
-joblib @ file:///tmp/build/80754af9/joblib_1601912903842/work
+joblib==1.0.0
 json5==0.9.5
 jsonschema @ file:///tmp/build/80754af9/jsonschema_1602607155483/work
 jupyter==1.0.0
@@ -113,7 +113,9 @@ jupyterlab-server @ file:///tmp/build/80754af9/jupyterlab_server_1594164409481/w
 keyring @ file:///opt/concourse/worker/volumes/live/54fc3ec2-338b-44f5-5e13-d62afa6b5820/volume/keyring_1601490916376/work
 kiwisolver @ file:///opt/concourse/worker/volumes/live/b8936fa6-0e4b-47e7-4fb4-e02dbd4505ee/volume/kiwisolver_1604014598721/work
 lazy-object-proxy==1.4.3
+lazypredict==0.2.9
 libarchive-c==2.9
+lightgbm==2.3.1
 llvmlite==0.34.0
 locket==0.2.0
 lxml @ file:///opt/concourse/worker/volumes/live/9351a723-931c-40fa-7baa-f2f468cdccf6/volume/lxml_1603216287330/work
@@ -142,13 +144,13 @@ nose @ file:///opt/concourse/worker/volumes/live/a029938e-1732-4cd8-5b98-0542283
 notebook @ file:///opt/concourse/worker/volumes/live/be0f3504-189d-4bae-4e57-c5d6da73ffcd/volume/notebook_1601501605350/work
 numba @ file:///opt/concourse/worker/volumes/live/ae24c1ca-d916-4043-5919-a843fa33e451/volume/numba_1600084276085/work
 numexpr==2.7.1
-numpy==1.21.2
+numpy==1.19.1
 numpydoc @ file:///tmp/build/80754af9/numpydoc_1605117425582/work
 olefile==0.46
 openpyxl @ file:///tmp/build/80754af9/openpyxl_1598113097404/work
 osqp==0.6.2.post0
 packaging==20.4
-pandas @ file:///opt/concourse/worker/volumes/live/f14cf8c4-c564-4eff-4b17-158e90dbf88a/volume/pandas_1602088128240/work
+pandas==1.0.5
 pandas-profiling==3.0.0
 pandocfilters @ file:///opt/concourse/worker/volumes/live/c330e404-216d-466b-5327-8ce8fe854d3a/volume/pandocfilters_1605120442288/work
 parso==0.7.0
@@ -185,7 +187,7 @@ pyOpenSSL @ file:///tmp/build/80754af9/pyopenssl_1594392929924/work
 pyparsing==2.4.7
 pyrsistent @ file:///opt/concourse/worker/volumes/live/ff11f3f0-615b-4508-471d-4d9f19fa6657/volume/pyrsistent_1600141727281/work
 PySocks @ file:///opt/concourse/worker/volumes/live/85a5b906-0e08-41d9-6f59-084cee4e9492/volume/pysocks_1594394636991/work
-pytest==6.2.5
+pytest==5.4.3
 python-dateutil==2.8.1
 python-jsonrpc-server @ file:///tmp/build/80754af9/python-jsonrpc-server_1600278539111/work
 python-language-server @ file:///tmp/build/80754af9/python-language-server_1600454544709/work
@@ -205,14 +207,15 @@ rope @ file:///tmp/build/80754af9/rope_1602264064449/work
 Rtree==0.9.4
 ruamel-yaml==0.15.87
 scikit-image==0.17.2
-scikit-learn @ file:///opt/concourse/worker/volumes/live/111833a2-339b-4578-413b-7337bb8fe64a/volume/scikit-learn_1598376920601/work
-scipy @ file:///opt/concourse/worker/volumes/live/851446f6-a052-41c4-4243-67bb78999b49/volume/scipy_1604596178167/work
+scikit-learn==0.23.1
+scipy==1.5.4
 scs==2.1.4
 seaborn @ file:///tmp/build/80754af9/seaborn_1600553570093/work
 Send2Trash==1.5.0
 simplegeneric==0.8.1
 singledispatch @ file:///tmp/build/80754af9/singledispatch_1602523705405/work
 six @ file:///opt/concourse/worker/volumes/live/5b31cb27-1e37-4ca5-6e9f-86246eb206d2/volume/six_1605205320872/work
+sklearn==0.0
 smart-open==5.2.1
 snowballstemmer==2.0.0
 sortedcollections==1.2.1
@@ -241,7 +244,7 @@ tifffile==2020.10.1
 toml @ file:///tmp/build/80754af9/toml_1592853716807/work
 toolz @ file:///tmp/build/80754af9/toolz_1601054250827/work
 tornado==6.0.4
-tqdm @ file:///tmp/build/80754af9/tqdm_1602185206534/work
+tqdm==4.56.0
 traitlets @ file:///tmp/build/80754af9/traitlets_1602787416690/work
 typing-extensions @ file:///tmp/build/80754af9/typing_extensions_1598376058250/work
 ujson @ file:///opt/concourse/worker/volumes/live/2fc9988c-ebca-4577-6c4b-7383ea76e8ee/volume/ujson_1602523306974/work
@@ -255,6 +258,7 @@ Werkzeug==1.0.1
 widgetsnbextension==3.5.1
 wrapt==1.11.2
 wurlitzer @ file:///opt/concourse/worker/volumes/live/01a17f3d-eafe-4806-57a1-4b9ef5d1815f/volume/wurlitzer_1594753845129/work
+xgboost==1.1.1
 xlrd==1.2.0
 XlsxWriter @ file:///tmp/build/80754af9/xlsxwriter_1602692860603/work
 xlwings==0.20.8
